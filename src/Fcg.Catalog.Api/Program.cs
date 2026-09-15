@@ -1,7 +1,9 @@
 using System.Text;
 using System.Text.Json;
+using Fcg.Catalog.Api.Cache;
 using Fcg.Catalog.Api.Configuration;
 using Fcg.Catalog.Api.ErrorHandling;
+using Fcg.Catalog.Api.Reviews;
 using Fcg.Catalog.Api.Observability;
 using Fcg.Catalog.Application.DependencyInjection;
 using Fcg.Catalog.Infrastructure.DependencyInjection;
@@ -9,6 +11,7 @@ using Fcg.Catalog.Infrastructure.Initialization;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using Prometheus;
 
 var builder = WebApplication.CreateBuilder(args);
 var jwtSection = builder.Configuration.GetSection(JwtOptions.SectionName);
@@ -86,6 +89,8 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 builder.Services.AddAuthorization();
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
+builder.Services.AddCatalogCache(builder.Configuration);
+builder.Services.AddCatalogReviews(builder.Configuration);
 
 builder.Services.AddOptions<JwtOptions>()
     .Bind(builder.Configuration.GetSection(JwtOptions.SectionName))
@@ -103,9 +108,11 @@ app.UseSwagger();
 app.UseSwaggerUI();
 app.UseStructuredRequestLogging();
 app.UseExceptionHandler();
+app.UseHttpMetrics();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
+app.MapMetrics();
 app.MapGet("/", () => Results.Redirect("/swagger")).ExcludeFromDescription();
 app.MapGet("/health", () => Results.Ok(new
 {
