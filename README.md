@@ -23,6 +23,30 @@ Microsservico responsavel pelo catalogo de jogos, promocoes, biblioteca do usuar
 - `POST /compras`
 - `GET /health`
 
+## Busca full-text (Fase 4)
+
+`GET /jogos/busca?q=aventura&categoria=RPG&precoMin=10&precoMax=100&pagina=1&tamanho=20`
+
+Requer JWT. Retorna `total`, `pagina`, `tamanho` e `itens`. Busca no titulo (peso 3),
+descricao e categoria, com analisador portugues e tolerancia a erros (`AUTO`).
+Filtros de preco sao inclusivos; somente jogos ativos aparecem. Ordenacao por relevancia e ID.
+Pagina inicia em 1, tamanho entre 1 e 100 e janela maxima de 10.000 resultados.
+Filtros invalidos retornam 400; Elasticsearch indisponivel ou desabilitado retorna 503.
+
+Configuracao: `Elasticsearch__Enabled=true`, `Elasticsearch__Url=http://localhost:9200`,
+`Elasticsearch__IndexName=fcg-games-v1`, `Elasticsearch__SyncIntervalSeconds=10`.
+Para um cluster autenticado, configure `Elasticsearch__ApiKey` e HTTPS.
+
+SQLite e a fonte transacional; Elasticsearch e uma projecao de consulta. Um worker reaplica
+o catalogo em lotes de 500, incluindo jogos desativados, e tenta novamente apos falhas.
+A busca tem consistencia eventual: aguarde o intervalo de sincronizacao e o refresh do indice.
+Nao ha fallback silencioso para busca SQL. O replay completo e adequado ao volume academico;
+para grande escala, substitua por outbox/CDC com checkpoints e reconstrucao via alias.
+Mantenha uma replica enquanto a persistencia transacional for SQLite.
+
+O workflow `.github/workflows/ci.yml` testa a solucao e publica a imagem em GHCR
+com tag igual ao SHA do commit. Pull requests apenas testam e constroem a imagem.
+
 ## Execucao local
 
 ```powershell
