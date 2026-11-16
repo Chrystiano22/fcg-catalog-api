@@ -1,6 +1,7 @@
 using System.Text;
 using System.Text.Json;
 using Fcg.Catalog.Api.Cache;
+using Fcg.Catalog.Api.Search;
 using Fcg.Catalog.Api.Configuration;
 using Fcg.Catalog.Api.ErrorHandling;
 using Fcg.Catalog.Api.Reviews;
@@ -91,6 +92,7 @@ builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddCatalogCache(builder.Configuration);
 builder.Services.AddCatalogReviews(builder.Configuration);
+builder.Services.AddCatalogSearch(builder.Configuration);
 
 builder.Services.AddOptions<JwtOptions>()
     .Bind(builder.Configuration.GetSection(JwtOptions.SectionName))

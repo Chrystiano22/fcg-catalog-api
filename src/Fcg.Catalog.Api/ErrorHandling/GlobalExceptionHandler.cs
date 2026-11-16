@@ -1,4 +1,5 @@
 using Fcg.Catalog.Application.Common;
+using Fcg.Catalog.Application.Search;
 using Fcg.Catalog.Api.Observability;
 using Fcg.Catalog.Domain.Common;
 using Microsoft.AspNetCore.Diagnostics;
@@ -26,6 +27,7 @@ public sealed class GlobalExceptionHandler : IExceptionHandler
     {
         var (statusCode, title, detail) = exception switch
         {
+            SearchUnavailableException => (StatusCodes.Status503ServiceUnavailable, "Search unavailable", exception.Message),
             DomainValidationException => (
                 StatusCodes.Status400BadRequest,
                 "Validation error",
